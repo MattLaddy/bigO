@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python IDE</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- CodeMirror Styles -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+</head>
+<body>
+    <div id="container">
+        <div id="editor-container">
+            <textarea id="code-editor"></textarea>
+        </div>
+        <div id="output-container">
+            <pre id="output"></pre>
+            <button id="run-code">Run Code</button>
+        </div>
+
+        <div id="graph-container">
+            <img id="performance-graph" src="" alt="Performance Graph" style="width: 600px; height: auto;">
+        </div>
+    </div>
+   <!-- CodeMirror Scripts -->
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+   <script src="{{ url_for('static', filename='script.js') }}"></script>
+   <script>
+       // Default code
+       const defaultCode = `# Welcome to your own Python IDE
+
+def main():
+    test_performance(n)
+
+if __name__ == "__main__":
+    main()`;
+
+       // Initialize CodeMirror
+       const editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
+           mode: 'python',
+           theme: 'dracula',
+           lineNumbers: true,
+           lineWrapping: true
+       });
+
+       // Set default code
+       editor.setValue(defaultCode);
+
+       // Handle code execution
+       document.getElementById('run-code').addEventListener('click', function() {
+           const code = editor.getValue();
+
+           fetch('/run', {
+               method: 'POST',
+               headers: {
+                   'Content-Type': 'application/json'
+               },
+               body: JSON.stringify({ code: code })
+           })
+           .then(response => response.json())
+           .then(data => {
+               document.getElementById('output').textContent = data.output;
+               document.getElementById('performance-graph').src = data.graph_url;
+           })
+           .catch(error => {
+               console.error('Error:', error);
+               document.getElementById('output').textContent = 'An error occurred';
+               document.getElementById('performance-graph').src = '';
+           });
+       });
+   </script>
+</body>
+</html>
